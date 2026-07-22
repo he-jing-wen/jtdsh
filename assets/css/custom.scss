@@ -1,8 +1,6 @@
 ---
 ---
 @import "{{ site.theme }}";
-
-/* 全局页面加宽、柔和底色 */
 .page__content {
   max-width: 920px;
   background: #ffffff;
@@ -13,14 +11,10 @@
 body {
   background-color: #f7fafc;
 }
-
-/* 标题左侧彩色装饰条 */
 h1, h2 {
   border-left: 5px solid #4299e1;
   padding-left: 12px;
 }
-
-/* 链接悬浮柔和底色 */
 a:not(.btn) {
   padding: 4px 8px;
   border-radius: 6px;
