@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>猜数字游戏</title>
+<style>
+body {background:#f8f9fa;color:#222;text-align:center;padding:80px 20px;font-size:18px;}
+input {width: 220px;padding: 10px;font-size:16px;margin:20px 0;outline:none;border-radius:6px;border:1px solid #ccc;}
+button {padding:10px 26px;background:#38bdf8;border:none;border-radius:6px;font-size:16px;cursor:pointer;color:#000;}
+#tip {margin-top:20px;font-size:20px;font-weight:bold;}
+a {display:inline-block;margin-top:40px;color:#0366d6;text-decoration:none;}
+</style>
+</head>
+<body>
+<h2>猜数字（1~100）</h2>
+<input type="number" id="inputNum" placeholder="输入猜测数字">
+<br>
+<button onclick="checkNum()">提交答案</button>
+<p id="tip"></p>
+<a href="index.html">← 返回网站首页</a>
+<script>
+const target = Math.floor(Math.random() * 100) + 1;
+function checkNum(){
+    let val = Number(document.getElementById('inputNum').value);
+    let tipDom = document.getElementById('tip');
+    if(val > target) tipDom.innerText = "数字偏大，再小一点";
+    else if(val < target) tipDom.innerText = "数字偏小，再大一点";
+    else tipDom.innerText = "🎉 恭喜，猜对了！";
+}
+</script>
+</body>
+</html>
