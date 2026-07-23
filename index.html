@@ -1,0 +1,523 @@
+---
+title: 首页
+nav_order: 0
+layout: single
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的学习生活小站</title>
+    <style>
+        /* 全局重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f6f8ff;
+            color: #111827;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+            line-height: 1.6;
+        }
+
+        /* 深色模式 */
+        body.dark {
+            background: #111827;
+            color: #f3f4f6;
+        }
+
+        body.dark .card {
+            background: #1f2937;
+            border-color: #374151;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        body.dark .card:hover {
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+        }
+
+        body.dark .banner-box {
+            background: linear-gradient(135deg, #4338ca, #6d28d9);
+        }
+
+        body.dark .hide-block {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+
+        body.dark .footer-line {
+            background: linear-gradient(90deg, transparent, #4b5563, transparent);
+        }
+
+        body.dark .nav-link {
+            color: #a5b4fc;
+        }
+
+        /* Banner */
+        .banner-box {
+            background: linear-gradient(135deg, #5b67eb, #805cf0);
+            border-radius: 20px;
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(91, 103, 235, 0.3);
+        }
+
+        .banner-box h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .banner-box p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            margin-bottom: 16px;
+        }
+
+        /* 按钮通用样式 */
+        .btn {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin: 4px 6px 4px 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-green {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .btn-green:hover {
+            background: #059669;
+        }
+
+        .btn-purple {
+            background: #6366f1;
+            color: #fff;
+        }
+
+        .btn-purple:hover {
+            background: #4f46e5;
+        }
+
+        .btn-toggle {
+            background: #4338ca;
+            color: white;
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+
+        .btn-toggle:hover {
+            background: #3730a3;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #6366f1;
+            border: 2px solid #6366f1;
+        }
+
+        .btn-outline:hover {
+            background: #6366f1;
+            color: #fff;
+        }
+
+        body.dark .btn-outline {
+            color: #a5b4fc;
+            border-color: #a5b4fc;
+        }
+
+        body.dark .btn-outline:hover {
+            background: #a5b4fc;
+            color: #111827;
+        }
+
+        /* 卡片 */
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 28px;
+            margin: 20px 0;
+            border: 1px solid #e4e9ff;
+            box-shadow: 0 2px 12px rgba(91, 103, 235, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 28px rgba(91, 103, 235, 0.12);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .card p {
+            margin-bottom: 12px;
+            color: #4b5563;
+        }
+
+        body.dark .card p {
+            color: #9ca3af;
+        }
+
+        /* 导航锚点 */
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: -10px 0 24px 0;
+        }
+
+        .nav-link {
+            color: #6366f1;
+            font-weight: 500;
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(99, 102, 241, 0.08);
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: rgba(99, 102, 241, 0.2);
+            transform: scale(1.05);
+        }
+
+        body.dark .nav-link {
+            background: rgba(165, 180, 252, 0.1);
+        }
+
+        body.dark .nav-link:hover {
+            background: rgba(165, 180, 252, 0.2);
+        }
+
+        /* 展开详情 */
+        .hide-block {
+            display: none;
+            margin-top: 12px;
+            padding: 14px;
+            background: #f0f4ff;
+            border-radius: 8px;
+            color: #1f2937;
+        }
+
+        .hide-block.show {
+            display: block;
+        }
+
+        /* 最近更新 */
+        .update-box {
+            background: #eef2ff;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin: 16px 0;
+            border-left: 4px solid #6366f1;
+        }
+
+        body.dark .update-box {
+            background: #1e293b;
+            border-left-color: #818cf8;
+        }
+
+        .update-box p {
+            margin: 0;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        body.dark .update-box p {
+            color: #d1d5db;
+        }
+
+        /* 返回顶部 */
+        #btn-top {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #6366f1;
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s;
+            display: none;
+            z-index: 999;
+        }
+
+        #btn-top:hover {
+            transform: scale(1.1);
+            background: #4f46e5;
+        }
+
+        /* 底部 */
+        .footer-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #c7d2fe, transparent);
+            margin: 40px 0 20px;
+        }
+
+        .footer-text {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        body.dark .footer-text {
+            color: #9ca3af;
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .banner-box h1 {
+                font-size: 1.5rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .nav-links {
+                gap: 10px;
+            }
+
+            .nav-link {
+                font-size: 13px;
+                padding: 4px 12px;
+            }
+
+            .btn {
+                font-size: 13px;
+                padding: 6px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== Banner ===== -->
+    <div class="banner-box">
+        <h1>📚 我的学习生活小站</h1>
+        <p>学习笔记 · 影视书单 · 趣味小游戏</p>
+        <button id="btn-dark" class="btn btn-toggle">🌓 切换深色/浅色</button>
+    </div>
+
+    <!-- ===== 快速导航 ===== -->
+    <div class="nav-links">
+        <a href="#study" class="nav-link">📖 学习笔记</a>
+        <a href="#movie" class="nav-link">🎬 影视书单</a>
+        <a href="#daily" class="nav-link">☕ 生活碎碎念</a>
+        <a href="#game" class="nav-link">🎮 趣味应用</a>
+    </div>
+
+    <!-- ===== 最近更新 ===== -->
+    <div class="update-box">
+        <p>📌 <strong>最近更新：</strong>2026-07-23 《数据结构复习提纲》｜2026-07-20 《星际穿越》观后感｜2026-07-18 7月第三周复盘</p>
+    </div>
+
+    <!-- ===== 欢迎卡片 ===== -->
+    <div class="card">
+        <h2>👋 欢迎来到我的个人小站</h2>
+        <p>这里存放我的全部学习资料、生活随笔、兴趣分享。内置多款纯前端小游戏，无需后端即可游玩。</p>
+        <button id="btn-info" class="btn btn-toggle">📋 站点说明</button>
+        <button id="btn-stats" class="btn btn-outline">📊 统计信息</button>
+    </div>
+
+    <!-- ===== 分类1：学习笔记 ===== -->
+    <div id="study" class="card">
+        <h3>📖 课程学习笔记</h3>
+        <p>各科知识点、错题整理、期末复习提纲</p>
+        <a href="study.md" class="btn btn-green">进入笔记库 →</a>
+        <button id="btn-s1" class="btn btn-toggle">展开详情</button>
+        <div id="s1" class="hide-block">
+            <p>📚 包含专业课、公共课整理笔记，可随时查阅复习。目前已有：</p>
+            <ul style="padding-left:20px; margin:8px 0;">
+                <li>数据结构与算法</li>
+                <li>操作系统</li>
+                <li>计算机网络</li>
+                <li>大学英语</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ===== 分类2：影视书单 ===== -->
+    <div id="movie" class="card">
+        <h3>🎬 影视书单</h3>
+        <p>高分电影、优质书籍观影读书心得与推荐清单</p>
+        <a href="movie.md" class="btn btn-green">查看清单 →</a>
+        <button id="btn-s2" class="btn btn-toggle">展开详情</button>
+        <div id="s2" class="hide-block">
+            <p>🎞️ 收录高分影片、文学书籍，附带个人观后感：</p>
+            <ul style="padding-left:20px; margin:8px 0;">
+                <li>《肖申克的救赎》- 希望与自由</li>
+                <li>《三体》- 科幻史诗</li>
+                <li>《活着》- 生命的韧性</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ===== 分类3：生活碎碎念 ===== -->
+    <div id="daily" class="card">
+        <h3>☕ 生活碎碎念</h3>
+        <p>日常记录、感悟、月度生活规划</p>
+        <a href="daily.md" class="btn btn-green">生活记录 →</a>
+        <button id="btn-s3" class="btn btn-toggle">展开详情</button>
+        <div id="s3" class="hide-block">
+            <p>📝 记录日常碎片、成长感悟与计划安排：</p>
+            <ul style="padding-left:20px; margin:8px 0;">
+                <li>2026年7月第三周复盘</li>
+                <li>暑期学习计划</li>
+                <li>读书打卡进度</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ===== 分类4：趣味小应用 ===== -->
+    <div id="game" class="card">
+        <h3>🎮 趣味小应用</h3>
+        <p>多款网页休闲小游戏，学习间隙放松解压</p>
+        <a href="click-speed.html" class="btn btn-purple">🖱️ 点击测速</a>
+        <a href="guess-number.html" class="btn btn-purple">🔢 猜数字</a>
+        <a href="game.md" class="btn btn-purple">🎯 游戏总览</a>
+        <br><br>
+        <button id="btn-s4" class="btn btn-toggle">游戏介绍</button>
+        <div id="s4" class="hide-block">
+            <p>🎮 全部纯前端JS实现，无后端、无数据上传，本地浏览器运行。</p>
+            <p style="margin-top:6px;">✨ 后续持续更新更多小游戏：扫雷、2048、数独……</p>
+        </div>
+    </div>
+
+    <!-- ===== 底部 ===== -->
+    <div class="footer-line"></div>
+    <p class="footer-text">© 2026 我的个人学习小站 · 用 ❤️ 搭建</p>
+
+    <!-- ===== 返回顶部按钮 ===== -->
+    <button id="btn-top">↑</button>
+
+    <!-- ============================================================ -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // ---------- 1. 深色模式 ----------
+            const darkBtn = document.getElementById('btn-dark');
+            darkBtn.addEventListener('click', function() {
+                document.body.classList.toggle('dark');
+                // 记住用户偏好
+                const isDark = document.body.classList.contains('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            });
+
+            // 加载时恢复主题
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark');
+            }
+
+            // ---------- 2. 站点说明弹窗 ----------
+            document.getElementById('btn-info').addEventListener('click', function() {
+                alert('📖 本站全部为静态前端页面\\n所有交互仅在浏览器本地运行\\n数据不会上传到任何服务器');
+            });
+
+            // ---------- 3. 统计信息 ----------
+            document.getElementById('btn-stats').addEventListener('click', function() {
+                const totalCards = document.querySelectorAll('.card').length;
+                const totalGames = document.querySelectorAll('.btn-purple').length;
+                alert('📊 站点统计：\\n\\n' +
+                    '📄 内容分类：' + totalCards + ' 个\\n' +
+                    '🎮 小游戏：' + totalGames + ' 个\\n' +
+                    '📝 笔记数：持续更新中...\\n' +
+                    '❤️ 感谢你的访问！');
+            });
+
+            // ---------- 4. 展开/收起详情 ----------
+            const toggleMap = {
+                'btn-s1': 's1',
+                'btn-s2': 's2',
+                'btn-s3': 's3',
+                'btn-s4': 's4'
+            };
+
+            Object.keys(toggleMap).forEach(function(btnId) {
+                const btn = document.getElementById(btnId);
+                const target = document.getElementById(toggleMap[btnId]);
+                if (btn && target) {
+                    btn.addEventListener('click', function() {
+                        target.classList.toggle('show');
+                        btn.textContent = target.classList.contains('show') ? '收起详情' : '展开详情';
+                    });
+                }
+            });
+
+            // ---------- 5. 返回顶部（滚动渐显） ----------
+            const topBtn = document.getElementById('btn-top');
+
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 300) {
+                    topBtn.style.display = 'block';
+                } else {
+                    topBtn.style.display = 'none';
+                }
+            });
+
+            topBtn.addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // ---------- 6. 点击导航平滑滚动 ----------
+            document.querySelectorAll('.nav-link').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl) {
+                        const offset = 80;
+                        const top = targetEl.getBoundingClientRect().top + window.pageYOffset - offset;
+                        window.scrollTo({ top: top, behavior: 'smooth' });
+                    }
+                });
+            });
+
+            // ---------- 7. 控制台欢迎 ----------
+            console.log('%c📚 欢迎来到我的学习小站！', 'font-size:20px; font-weight:bold; color:#6366f1;');
+            console.log('%c所有内容均为静态页面，欢迎浏览~', 'font-size:14px; color:#6b7280;');
+
+        });
+    </script>
+
+</body>
+</html>
