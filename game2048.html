@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>扫雷</title>
+    <title>2048</title>
     <style>
         * {
             box-sizing: border-box;
@@ -19,59 +19,50 @@
             background: white;
             border-radius: 20px;
             padding: 30px 20px;
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
         h1 {
-            margin: 0 0 8px 0;
+            margin: 0 0 5px 0;
             color: #1f2937;
         }
-        .info {
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 10px 16px 10px;
-            font-size: 18px;
-            font-weight: bold;
+            padding: 0 5px 16px 5px;
             flex-wrap: wrap;
             gap: 10px;
         }
-        .info span {
+        .score-box {
             background: #f0f4ff;
-            padding: 6px 16px;
-            border-radius: 10px;
+            padding: 6px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 20px;
         }
         .grid {
             display: grid;
-            gap: 2px;
-            justify-content: center;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            background: #b9c4f0;
+            padding: 10px;
+            border-radius: 12px;
             margin: 0 auto;
+            max-width: 420px;
         }
         .cell {
-            width: 40px;
-            height: 40px;
-            background: #b9c4f0;
-            border: none;
-            border-radius: 4px;
-            font-size: 18px;
+            aspect-ratio: 1;
+            background: #d1d9f5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
             font-weight: bold;
-            cursor: pointer;
             transition: 0.1s;
             color: #1f2937;
-        }
-        .cell:hover {
-            background: #a5b4fc;
-        }
-        .cell.revealed {
-            background: #e5e9f5;
-            cursor: default;
-        }
-        .cell.revealed:hover {
-            background: #e5e9f5;
-        }
-        .cell.mine {
-            background: #fca5a5;
         }
         .btn-group {
             margin: 16px 0 8px 0;
@@ -100,277 +91,269 @@
         .btn-back:hover {
             background: #059669;
         }
-        .btn-diff {
-            background: #8b5cf6;
-        }
-        .btn-diff:hover {
-            background: #7c3aed;
-        }
-        .btn-diff.active {
-            background: #4f46e5;
-            box-shadow: 0 0 0 3px #c7d2fe;
-        }
         .status {
-            font-size: 20px;
-            margin: 10px 0;
+            font-size: 18px;
+            margin: 12px 0 0 0;
             padding: 10px;
             border-radius: 10px;
             background: #f0f4ff;
-            min-height: 50px;
+            min-height: 44px;
         }
-        @media (max-width: 500px) {
+        .hint {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        @media (max-width: 450px) {
             .cell {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
+                font-size: 24px;
             }
-            .box {
-                padding: 16px 10px;
+            .grid {
+                gap: 6px;
+                padding: 6px;
             }
         }
     </style>
 </head>
 <body>
     <div class="box">
-        <h1>?? 扫雷</h1>
-        <div class="info">
-            <span>?? <span id="mineCount">10</span></span>
-            <span>?? <span id="flagCount">0</span></span>
-        </div>
-        <div id="grid" class="grid"></div>
-        <div class="status" id="status">点击格子开始游戏</div>
-        <div class="btn-group">
-            <button class="btn btn-diff active" data-size="8" data-mines="10">8×8</button>
-            <button class="btn btn-diff" data-size="10" data-mines="15">10×10</button>
-            <button class="btn btn-diff" data-size="12" data-mines="20">12×12</button>
-        </div>
-        <div class="btn-group">
+        <h1>2048</h1>
+        <div class="header">
+            <div class="score-box">?? <span id="score">0</span></div>
             <button class="btn" id="resetBtn">?? 重新开始</button>
+        </div>
+        <div class="grid" id="grid"></div>
+        <div class="status" id="status">使用键盘方向键或滑动操作</div>
+        <div class="hint">← ↑ → ↓ 或 滑动屏幕</div>
+        <div class="btn-group">
             <button class="btn btn-back" onclick="location.href='index.html'">?? 返回首页</button>
         </div>
     </div>
 
     <script>
-        let size = 8;
-        let mineCount = 10;
+        const SIZE = 4;
         let grid = [];
-        let revealed = [];
-        let flagged = [];
+        let score = 0;
         let gameOver = false;
-        let firstClick = true;
-        let flagCount = 0;
+        let isMoving = false;
 
         const gridEl = document.getElementById('grid');
+        const scoreEl = document.getElementById('score');
         const statusEl = document.getElementById('status');
-        const mineCountEl = document.getElementById('mineCount');
-        const flagCountEl = document.getElementById('flagCount');
-        const resetBtn = document.getElementById('resetBtn');
 
         function initGrid() {
             grid = [];
-            revealed = [];
-            flagged = [];
-            for (let r = 0; r < size; r++) {
+            for (let r = 0; r < SIZE; r++) {
                 grid[r] = [];
-                revealed[r] = [];
-                flagged[r] = [];
-                for (let c = 0; c < size; c++) {
+                for (let c = 0; c < SIZE; c++) {
                     grid[r][c] = 0;
-                    revealed[r][c] = false;
-                    flagged[r][c] = false;
                 }
             }
+            score = 0;
             gameOver = false;
-            firstClick = true;
-            flagCount = 0;
-            flagCountEl.textContent = '0';
-            mineCountEl.textContent = mineCount;
-            statusEl.textContent = '点击格子开始游戏';
+            isMoving = false;
+            scoreEl.textContent = '0';
+            statusEl.textContent = '使用键盘方向键或滑动操作';
             statusEl.style.background = '#f0f4ff';
-        }
-
-        function placeMines(excludeR, excludeC) {
-            let placed = 0;
-            while (placed < mineCount) {
-                const r = Math.floor(Math.random() * size);
-                const c = Math.floor(Math.random() * size);
-                if (grid[r][c] === -1) continue;
-                if (Math.abs(r - excludeR) <= 1 && Math.abs(c - excludeC) <= 1) continue;
-                grid[r][c] = -1;
-                placed++;
-            }
-            // 计算数字
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    if (grid[r][c] === -1) continue;
-                    let count = 0;
-                    for (let dr = -1; dr <= 1; dr++) {
-                        for (let dc = -1; dc <= 1; dc++) {
-                            const nr = r + dr,
-                                nc = c + dc;
-                            if (nr >= 0 && nr < size && nc >= 0 && nc < size && grid[nr][nc] === -1) count++;
-                        }
-                    }
-                    grid[r][c] = count;
-                }
-            }
-        }
-
-        function render() {
-            gridEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
-            gridEl.innerHTML = '';
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const cell = document.createElement('button');
-                    cell.className = 'cell';
-                    cell.dataset.r = r;
-                    cell.dataset.c = c;
-                    cell.addEventListener('click', () => handleClick(r, c));
-                    cell.addEventListener('contextmenu', (e) => {
-                        e.preventDefault();
-                        handleRightClick(r, c);
-                    });
-                    gridEl.appendChild(cell);
-                }
-            }
-            updateView();
-        }
-
-        function updateView() {
-            const cells = gridEl.children;
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const idx = r * size + c;
-                    const cell = cells[idx];
-                    cell.className = 'cell';
-                    if (revealed[r][c]) {
-                        cell.classList.add('revealed');
-                        if (grid[r][c] === -1) {
-                            cell.textContent = '??';
-                            cell.classList.add('mine');
-                        } else if (grid[r][c] > 0) {
-                            cell.textContent = grid[r][c];
-                            const colors = ['', '#3b82f6', '#22c55e', '#ef4444', '#8b5cf6', '#f59e0b', '#06b6d4', '#1f2937',
-                                '#78716c'
-                            ];
-                            cell.style.color = colors[grid[r][c]] || '#1f2937';
-                        } else {
-                            cell.textContent = '';
-                        }
-                    } else {
-                        if (flagged[r][c]) {
-                            cell.textContent = '??';
-                            cell.style.color = '#ef4444';
-                        } else {
-                            cell.textContent = '';
-                            cell.style.color = '#1f2937';
-                        }
-                    }
-                }
-            }
-        }
-
-        function reveal(r, c) {
-            if (r < 0 || r >= size || c < 0 || c >= size) return;
-            if (revealed[r][c] || flagged[r][c]) return;
-            if (grid[r][c] === -1) {
-                // 踩雷
-                gameOver = true;
-                statusEl.textContent = '?? 游戏结束！踩到地雷了！';
-                statusEl.style.background = '#fee2e2';
-                revealAll();
-                return;
-            }
-            revealed[r][c] = true;
-            if (grid[r][c] === 0) {
-                for (let dr = -1; dr <= 1; dr++) {
-                    for (let dc = -1; dc <= 1; dc++) {
-                        if (dr === 0 && dc === 0) continue;
-                        reveal(r + dr, c + dc);
-                    }
-                }
-            }
-            updateView();
-            checkWin();
-        }
-
-        function revealAll() {
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    revealed[r][c] = true;
-                }
-            }
-            updateView();
-        }
-
-        function checkWin() {
-            let totalSafe = size * size - mineCount;
-            let revealedCount = 0;
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    if (revealed[r][c]) revealedCount++;
-                }
-            }
-            if (revealedCount === totalSafe) {
-                gameOver = true;
-                statusEl.textContent = '?? 恭喜你赢了！太棒了！';
-                statusEl.style.background = '#d1fae5';
-                // 自动标记所有地雷
-                for (let r = 0; r < size; r++) {
-                    for (let c = 0; c < size; c++) {
-                        if (grid[r][c] === -1) flagged[r][c] = true;
-                    }
-                }
-                flagCount = mineCount;
-                flagCountEl.textContent = flagCount;
-                updateView();
-            }
-        }
-
-        function handleClick(r, c) {
-            if (gameOver) return;
-            if (flagged[r][c]) return;
-            if (revealed[r][c]) return;
-
-            if (firstClick) {
-                placeMines(r, c);
-                firstClick = false;
-                statusEl.textContent = '游戏进行中...';
-                statusEl.style.background = '#dbeafe';
-            }
-            reveal(r, c);
-        }
-
-        function handleRightClick(r, c) {
-            if (gameOver) return;
-            if (revealed[r][c]) return;
-            flagged[r][c] = !flagged[r][c];
-            flagCount += flagged[r][c] ? 1 : -1;
-            flagCountEl.textContent = flagCount;
-            updateView();
-        }
-
-        function resetGame() {
-            initGrid();
+            spawnTile();
+            spawnTile();
             render();
         }
 
-        // 难度切换
-        document.querySelectorAll('.btn-diff').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.btn-diff').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                size = parseInt(this.dataset.size);
-                mineCount = parseInt(this.dataset.mines);
-                resetGame();
-            });
+        function spawnTile() {
+            const empty = [];
+            for (let r = 0; r < SIZE; r++) {
+                for (let c = 0; c < SIZE; c++) {
+                    if (grid[r][c] === 0) empty.push({ r, c });
+                }
+            }
+            if (empty.length === 0) return false;
+            const pos = empty[Math.floor(Math.random() * empty.length)];
+            grid[pos.r][pos.c] = Math.random() < 0.9 ? 2 : 4;
+            return true;
+        }
+
+        function render() {
+            gridEl.innerHTML = '';
+            for (let r = 0; r < SIZE; r++) {
+                for (let c = 0; c < SIZE; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    const val = grid[r][c];
+                    if (val > 0) {
+                        cell.textContent = val;
+                        const colors = {
+                            2: '#e5e7eb',
+                            4: '#d1d5db',
+                            8: '#fca5a5',
+                            16: '#fb923c',
+                            32: '#f97316',
+                            64: '#ef4444',
+                            128: '#facc15',
+                            256: '#a3e635',
+                            512: '#4ade80',
+                            1024: '#34d399',
+                            2048: '#22d3ee',
+                            4096: '#818cf8'
+                        };
+                        cell.style.background = colors[val] || '#c7d2fe';
+                        cell.style.color = val > 4 ? 'white' : '#1f2937';
+                    } else {
+                        cell.style.background = '#d1d9f5';
+                        cell.textContent = '';
+                    }
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+
+        function slide(row) {
+            // 移除零并合并
+            let filtered = row.filter(v => v !== 0);
+            let merged = [];
+            let scoreGain = 0;
+            for (let i = 0; i < filtered.length; i++) {
+                if (i + 1 < filtered.length && filtered[i] === filtered[i + 1]) {
+                    merged.push(filtered[i] * 2);
+                    scoreGain += filtered[i] * 2;
+                    i++;
+                } else {
+                    merged.push(filtered[i]);
+                }
+            }
+            while (merged.length < SIZE) merged.push(0);
+            return { row: merged, scoreGain };
+        }
+
+        function moveLeft() {
+            let moved = false;
+            let totalScore = 0;
+            for (let r = 0; r < SIZE; r++) {
+                const result = slide(grid[r]);
+                if (result.row.join(',') !== grid[r].join(',')) moved = true;
+                grid[r] = result.row;
+                totalScore += result.scoreGain;
+            }
+            return { moved, scoreGain: totalScore };
+        }
+
+        function moveRight() {
+            let moved = false;
+            let totalScore = 0;
+            for (let r = 0; r < SIZE; r++) {
+                const reversed = [...grid[r]].reverse();
+                const result = slide(reversed);
+                const newRow = result.row.reverse();
+                if (newRow.join(',') !== grid[r].join(',')) moved = true;
+                grid[r] = newRow;
+                totalScore += result.scoreGain;
+            }
+            return { moved, scoreGain: totalScore };
+        }
+
+        function moveUp() {
+            let moved = false;
+            let totalScore = 0;
+            for (let c = 0; c < SIZE; c++) {
+                const col = [];
+                for (let r = 0; r < SIZE; r++) col.push(grid[r][c]);
+                const result = slide(col);
+                for (let r = 0; r < SIZE; r++) {
+                    if (grid[r][c] !== result.row[r]) moved = true;
+                    grid[r][c] = result.row[r];
+                }
+                totalScore += result.scoreGain;
+            }
+            return { moved, scoreGain: totalScore };
+        }
+
+        function moveDown() {
+            let moved = false;
+            let totalScore = 0;
+            for (let c = 0; c < SIZE; c++) {
+                const col = [];
+                for (let r = SIZE - 1; r >= 0; r--) col.push(grid[r][c]);
+                const result = slide(col);
+                for (let r = 0; r < SIZE; r++) {
+                    const val = result.row[SIZE - 1 - r];
+                    if (grid[r][c] !== val) moved = true;
+                    grid[r][c] = val;
+                }
+                totalScore += result.scoreGain;
+            }
+            return { moved, scoreGain: totalScore };
+        }
+
+        function checkGameOver() {
+            for (let r = 0; r < SIZE; r++) {
+                for (let c = 0; c < SIZE; c++) {
+                    if (grid[r][c] === 0) return false;
+                    if (c + 1 < SIZE && grid[r][c] === grid[r][c + 1]) return false;
+                    if (r + 1 < SIZE && grid[r][c] === grid[r + 1][c]) return false;
+                }
+            }
+            return true;
+        }
+
+        function performMove(moveFn) {
+            if (gameOver || isMoving) return;
+            isMoving = true;
+            const result = moveFn();
+            if (result.moved) {
+                score += result.scoreGain;
+                scoreEl.textContent = score;
+                spawnTile();
+                render();
+                if (checkGameOver()) {
+                    gameOver = true;
+                    statusEl.textContent = '?? 游戏结束！得分：' + score;
+                    statusEl.style.background = '#fee2e2';
+                } else {
+                    statusEl.textContent = '继续游戏...';
+                    statusEl.style.background = '#dbeafe';
+                }
+            }
+            isMoving = false;
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', function(e) {
+            const keyMap = {
+                'ArrowLeft': moveLeft,
+                'ArrowRight': moveRight,
+                'ArrowUp': moveUp,
+                'ArrowDown': moveDown
+            };
+            if (keyMap[e.key]) {
+                e.preventDefault();
+                performMove(keyMap[e.key]);
+            }
         });
 
-        resetBtn.addEventListener('click', resetGame);
+        // 触摸滑动控制
+        let touchStartX = 0,
+            touchStartY = 0;
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        });
+        document.addEventListener('touchend', function(e) {
+            const dx = e.changedTouches[0].screenX - touchStartX;
+            const dy = e.changedTouches[0].screenY - touchStartY;
+            if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                performMove(dx > 0 ? moveRight : moveLeft);
+            } else {
+                performMove(dy > 0 ? moveDown : moveUp);
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            initGrid();
+        });
 
         // 启动
         initGrid();
-        render();
     </script>
 </body>
 </html>
