@@ -4,7 +4,6 @@ nav_order: 0
 layout: single
 ---
 
-<!-- 全局美化样式，只写在首页，不会触发scss编译失败 -->
 <style>
 /* 页面整体柔和背景 */
 body {
