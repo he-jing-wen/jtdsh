@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数独</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 30px 20px;
+            background: #f6f8ff;
+        }
+        .box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 20px;
+            max-width: 550px;
+            margin: 0 auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin: 0 0 5px 0;
+            color: #1f2937;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 1px;
+            background: #b9c4f0;
+            padding: 2px;
+            border-radius: 8px;
+            margin: 10px auto;
+            max-width: 450px;
+            border: 3px solid #6366f1;
+        }
+        .cell {
+            aspect-ratio: 1;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.1s;
+            color: #1f2937;
+            border: none;
+        }
+        .cell.fixed {
+            background: #eef2ff;
+            color: #1f2937;
+        }
+        .cell.selected {
+            background: #c7d2fe;
+        }
+        .cell.highlight {
+            background: #dbeafe;
+        }
+        .cell.error {
+            color: #ef4444;
+            background: #fee2e2;
+        }
+        .cell:hover:not(.fixed) {
+            background: #e5e9f5;
+        }
+        .cell.correct {
+            color: #22c55e;
+        }
+        .border-right {
+            border-right: 2px solid #6366f1;
+        }
+        .border-bottom {
+            border-bottom: 2px solid #6366f1;
+        }
+        .numpad {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+        .numpad button {
+            width: 44px;
+            height: 44px;
+            border: 2px solid #e4e9ff;
+            border-radius: 10px;
+            background: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #1f2937;
+        }
+        .numpad button:hover {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        .numpad button.erase {
+            width: 60px;
+            font-size: 14px;
+            background: #fee2e2;
+            border-color: #fca5a5;
+        }
+        .numpad button.erase:hover {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-group {
+            margin: 12px 0 8px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #6366f1;
+            color: white;
+        }
+        .btn:hover {
+            transform: scale(1.03);
+            background: #4f46e5;
+        }
+        .btn-back {
+            background: #10b981;
+        }
+        .btn-back:hover {
+            background: #059669;
+        }
+        .btn-hint {
+            background: #f59e0b;
+        }
+        .btn-hint:hover {
+            background: #d97706;
+        }
+        .status {
+            font-size: 16px;
+            margin: 8px 0 0 0;
+            padding: 8px;
+            border-radius: 10px;
+            background: #f0f4ff;
+            min-height: 36px;
+        }
+        @media (max-width: 450px) {
+            .cell {
+                font-size: 18px;
+            }
+            .numpad button {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            .numpad button.erase {
+                width: 50px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>?? 数独</h1>
+        <div class="grid" id="grid"></div>
+        <div class="numpad" id="numpad">
+            <button data-num="1">1</button>
+            <button data-num="2">2</button>
+            <button data-num="3">3</button>
+            <button data-num="4">4</button>
+            <button data-num="5">5</button>
+            <button data-num="6">6</button>
+            <button data-num="7">7</button>
+            <button data-num="8">8</button>
+            <button data-num="9">9</button>
+            <button class="erase" data-num="0">? 擦除</button>
+        </div>
+        <div class="status" id="status">点击格子后输入数字</div>
+        <div class="btn-group">
+            <button class="btn" id="newGameBtn">?? 新游戏</button>
+            <button class="btn btn-hint" id="hintBtn">?? 提示</button>
+            <button class="btn btn-back" onclick="location.href='index.html'">?? 返回首页</button>
+        </div>
+    </div>
+
+    <script>
+        let board = [];
+        let solution = [];
+        let fixed = [];
+        let selectedRow = -1,
+            selectedCol = -1;
+        let difficulty = 35; // 空格数量
+
+        const gridEl = document.getElementById('grid');
+        const statusEl = document.getElementById('status');
+
+        // 生成有效数独
+        function generateSudoku() {
+            // 先用一个有效盘面
+            let base = [
+                [5, 3, 4, 6, 7, 8, 9, 1, 2],
+                [6, 7, 2, 1, 9, 5, 3, 4, 8],
+                [1, 9, 8, 3, 4, 2, 5, 6, 7],
+                [8, 5, 9, 7, 6, 1, 4, 2, 3],
+                [4, 2, 6, 8, 5, 3, 7, 9, 1],
+                [7, 1, 3, 9, 2, 4, 8, 5, 6],
+                [9, 6, 1, 5, 3, 7, 2, 8, 4],
+                [2, 8, 7, 4, 1, 9, 6, 3, 5],
+                [3, 4, 5, 2, 8, 6, 1, 7, 9]
+            ];
+
+            // 随机交换行（同一3行组内）、列（同一3列组内）、数字
+            for (let i = 0; i < 10; i++) {
+                // 交换行
+                let grp = Math.floor(Math.random() * 3);
+                let r1 = grp * 3 + Math.floor(Math.random() * 3);
+                let r2 = grp * 3 + Math.floor(Math.random() * 3);
+                if (r1 !== r2) {
+                    [base[r1], base[r2]] = [base[r2], base[r1]];
+                }
+                // 交换列
+                let gc = Math.floor(Math.random() * 3);
+                let c1 = gc * 3 + Math.floor(Math.random() * 3);
+                let c2 = gc * 3 + Math.floor(Math.random() * 3);
+                if (c1 !== c2) {
+                    for (let r = 0; r < 9; r++) {
+                        [base[r][c1], base[r][c2]] = [base[r][c2], base[r][c1]];
+                    }
+                }
+            }
+
+            return base;
+        }
+
+        function initGame() {
+            const solved = generateSudoku();
+            solution = solved.map(row => [...row]);
+            board = solved.map(row => [...row]);
+            fixed = [];
+            for (let r = 0; r < 9; r++) {
+                fixed[r] = [];
+                for (let c = 0; c < 9; c++) {
+                    fixed[r][c] = false;
+                }
+            }
+
+            // 随机移除数字
+            let removed = 0;
+            while (removed < difficulty) {
+                const r = Math.floor(Math.random() * 9);
+                const c = Math.floor(Math.random() * 9);
+                if (board[r][c] !== 0) {
+                    board[r][c] = 0;
+                    fixed[r][c] = false;
+                    removed++;
+                }
+            }
+
+            // 标记固定数字
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (board[r][c] !== 0) fixed[r][c] = true;
+                }
+            }
+
+            selectedRow = -1;
+            selectedCol = -1;
+            statusEl.textContent = '点击格子后输入数字';
+            statusEl.style.background = '#f0f4ff';
+            render();
+        }
+
+        function render() {
+            gridEl.innerHTML = '';
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const cell = document.createElement('button');
+                    cell.className = 'cell';
+                    if (fixed[r][c]) cell.classList.add('fixed');
+                    if (r === selectedRow && c === selectedCol) cell.classList.add('selected');
+
+                    // 3x3 
