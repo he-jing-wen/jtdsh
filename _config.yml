@@ -8,5 +8,3 @@ footer_content: "个人记录小站 | 持续更新中"
 nav_sort: case_sensitive
 include:
   - "*.html"
-stylesheets:
-  - "/assets/css/custom.scss"
