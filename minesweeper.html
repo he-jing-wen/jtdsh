@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扫雷</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 30px 20px;
+            background: #f6f8ff;
+        }
+        .box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin: 0 0 8px 0;
+            color: #1f2937;
+        }
+        .info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px 16px 10px;
+            font-size: 18px;
+            font-weight: bold;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .info span {
+            background: #f0f4ff;
+            padding: 6px 16px;
+            border-radius: 10px;
+        }
+        .grid {
+            display: grid;
+            gap: 2px;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        .cell {
+            width: 40px;
+            height: 40px;
+            background: #b9c4f0;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.1s;
+            color: #1f2937;
+        }
+        .cell:hover {
+            background: #a5b4fc;
+        }
+        .cell.revealed {
+            background: #e5e9f5;
+            cursor: default;
+        }
+        .cell.revealed:hover {
+            background: #e5e9f5;
+        }
+        .cell.mine {
+            background: #fca5a5;
+        }
+        .btn-group {
+            margin: 16px 0 8px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #6366f1;
+            color: white;
+        }
+        .btn:hover {
+            transform: scale(1.03);
+            background: #4f46e5;
+        }
+        .btn-back {
+            background: #10b981;
+        }
+        .btn-back:hover {
+            background: #059669;
+        }
+        .btn-diff {
+            background: #8b5cf6;
+        }
+        .btn-diff:hover {
+            background: #7c3aed;
+        }
+        .btn-diff.active {
+            background: #4f46e5;
+            box-shadow: 0 0 0 3px #c7d2fe;
+        }
+        .status {
+            font-size: 20px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            background: #f0f4ff;
+            min-height: 50px;
+        }
+        @media (max-width: 500px) {
+            .cell {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            .box {
+                padding: 16px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>💣 扫雷</h1>
+        <div class="info">
+            <span>💣 <span id="mineCount">10</span></span>
+            <span>🏆 <span id="flagCount">0</span></span>
+        </div>
+        <div id="grid" class="grid"></div>
+        <div class="status" id="status">点击格子开始游戏</div>
+        <div class="btn-group">
+            <button class="btn btn-diff active" data-size="8" data-mines="10">8×8</button>
+            <button class="btn btn-diff" data-size="10" data-mines="15">10×10</button>
+            <button class="btn btn-diff" data-size="12" data-mines="20">12×12</button>
+        </div>
+        <div class="btn-group">
+            <button class="btn" id="resetBtn">🔄 重新开始</button>
+            <button class="btn btn-back" onclick="location.href='index.html'">🏠 返回首页</button>
+        </div>
+    </div>
+
+    <script>
+        let size = 8;
+        let mineCount = 10;
+        let grid = [];
+        let revealed = [];
+        let flagged = [];
+        let gameOver = false;
+        let firstClick = true;
+        let flagCount = 0;
+
+        const gridEl = document.getElementById('grid');
+        const statusEl = document.getElementById('status');
+        const mineCountEl = document.getElementById('mineCount');
+        const flagCountEl = document.getElementById('flagCount');
+        const resetBtn = document.getElementById('resetBtn');
+
+        function initGrid() {
+            grid = [];
+            revealed = [];
+            flagged = [];
+            for (let r = 0; r < size; r++) {
+                grid[r] = [];
+                revealed[r] = [];
+                flagged[r] = [];
+                for (let c = 0; c < size; c++) {
+                    grid[r][c] = 0;
+                    revealed[r][c] = false;
+                    flagged[r][c] = false;
+                }
+            }
+            gameOver = false;
+            firstClick = true;
+            flagCount = 0;
+            flagCountEl.textContent = '0';
+            mineCountEl.textContent = mineCount;
+            statusEl.textContent = '点击格子开始游戏';
+            statusEl.style.background = '#f0f4ff';
+        }
+
+        function placeMines(excludeR, excludeC) {
+            let placed = 0;
+            while (placed < mineCount) {
+                const r = Math.floor(Math.random() * size);
+                const c = Math.floor(Math.random() * size);
+                if (grid[r][c] === -1) continue;
+                if (Math.abs(r - excludeR) <= 1 && Math.abs(c - excludeC) <= 1) continue;
+                grid[r][c] = -1;
+                placed++;
+            }
+            // 计算数字
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (grid[r][c] === -1) continue;
+                    let count = 0;
+                    for (let dr = -1; dr <= 1; dr++) {
+                        for (let dc = -1; dc <= 1; dc++) {
+                            const nr = r + dr,
+                                nc = c + dc;
+                            if (nr >= 0 && nr < size && nc >= 0 && nc < size && grid[nr][nc] === -1) count++;
+                        }
+                    }
+                    grid[r][c] = count;
+                }
+            }
+        }
+
+        function render() {
+            gridEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            gridEl.innerHTML = '';
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    const cell = document.createElement('button');
+                    cell.className = 'cell';
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+                    cell.addEventListener('click', () => handleClick(r, c));
+                    cell.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        handleRightClick(r, c);
+                    });
+                    gridEl.appendChild(cell);
+                }
+            }
+            updateView();
+        }
+
+        function updateView() {
+            const cells = gridEl.children;
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    const idx = r * size + c;
+                    const cell = cells[idx];
+                    cell.className = 'cell';
+                    if (revealed[r][c]) {
+                        cell.classList.add('revealed');
+                        if (grid[r][c] === -1) {
+                            cell.textContent = '💣';
+                            cell.classList.add('mine');
+                        } else if (grid[r][c] > 0) {
+                            cell.textContent = grid[r][c];
+                            const colors = ['', '#3b82f6', '#22c55e', '#ef4444', '#8b5cf6', '#f59e0b', '#06b6d4', '#1f2937',
+                                '#78716c'
+                            ];
+                            cell.style.color = colors[grid[r][c]] || '#1f2937';
+                        } else {
+                            cell.textContent = '';
+                        }
+                    } else {
+                        if (flagged[r][c]) {
+                            cell.textContent = '🚩';
+                            cell.style.color = '#ef4444';
+                        } else {
+                            cell.textContent = '';
+                            cell.style.color = '#1f2937';
+                        }
+                    }
+                }
+            }
+        }
+
+        function reveal(r, c) {
+            if (r < 0 || r >= size || c < 0 || c >= size) return;
+            if (revealed[r][c] || flagged[r][c]) return;
+            if (grid[r][c] === -1) {
+                // 踩雷
+                gameOver = true;
+                statusEl.textContent = '💥 游戏结束！踩到地雷了！';
+                statusEl.style.background = '#fee2e2';
+                revealAll();
+                return;
+            }
+            revealed[r][c] = true;
+            if (grid[r][c] === 0) {
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        if (dr === 0 && dc === 0) continue;
+                        reveal(r + dr, c + dc);
+                    }
+                }
+            }
+            updateView();
+            checkWin();
+        }
+
+        function revealAll() {
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    revealed[r][c] = true;
+                }
+            }
+            updateView();
+        }
+
+        function checkWin() {
+            let totalSafe = size * size - mineCount;
+            let revealedCount = 0;
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (revealed[r][c]) revealedCount++;
+                }
+            }
+            if (revealedCount === totalSafe) {
+                gameOver = true;
+                statusEl.textContent = '🎉 恭喜你赢了！太棒了！';
+                statusEl.style.background = '#d1fae5';
+                // 自动标记所有地雷
+                for (let r = 0; r < size; r++) {
+                    for (let c = 0; c < size; c++) {
+                        if (grid[r][c] === -1) flagged[r][c] = true;
+                    }
+                }
+                flagCount = mineCount;
+                flagCountEl.textContent = flagCount;
+                updateView();
+            }
+        }
+
+        function handleClick(r, c) {
+            if (gameOver) return;
+            if (flagged[r][c]) return;
+            if (revealed[r][c]) return;
+
+            if (firstClick) {
+                placeMines(r, c);
+                firstClick = false;
+                statusEl.textContent = '游戏进行中...';
+                statusEl.style.background = '#dbeafe';
+            }
+            reveal(r, c);
+        }
+
+        function handleRightClick(r, c) {
+            if (gameOver) return;
+            if (revealed[r][c]) return;
+            flagged[r][c] = !flagged[r][c];
+            flagCount += flagged[r][c] ? 1 : -1;
+            flagCountEl.textContent = flagCount;
+            updateView();
+        }
+
+        function resetGame() {
+            initGrid();
+            render();
+        }
+
+        // 难度切换
+        document.querySelectorAll('.btn-diff').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.btn-diff').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                size = parseInt(this.dataset.size);
+                mineCount = parseInt(this.dataset.mines);
+                resetGame();
+            });
+        });
+
+        resetBtn.addEventListener('click', resetGame);
+
+        // 启动
+        initGrid();
+        render();
+    </script>
+</body>
+</html>
